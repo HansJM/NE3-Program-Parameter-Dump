@@ -16,7 +16,7 @@ positional arguments:
 
 optional arguments:
   -h, --help         show this help message and exit
-  -d DST, --dst DST  writes results to <DST>.csv / <SRC>.csv with '-d $'
+  -d DST, --dst DST  write results to <DST>.csv / <SRC>.csv with '-d $'
   -f, --folder       process all .nepg files in folder <SRC>
 ```
 

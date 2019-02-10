@@ -23,14 +23,14 @@ optional arguments:
 ## Contents
 Here is a short description of all files contained in this folder:
 
-| File                      | Description                             |
-| ------------------------- | --------------------------------------- |
-| nepgDump.py               | NE3 dump script (main module)           |
-| nepgParser.py             | Parser module (imported by main module) |
-| nepgOut.py                | Output module (imported by main module) |
-| nepgDump.exe              | Executable program                      |
-| NE3 Template.xlsm         | Empty Excel template                    |
-| NE3 Factory Programs.xlsm | Example Excel table                     |
+| File                        | Description                             |
+| --------------------------- | --------------------------------------- |
+| nepgDump.py                 | NE3 dump script (main module)           |
+| nepgParser.py               | Parser module (imported by main module) |
+| nepgOut.py                  | Output module (imported by main module) |
+| nepgDump.exe                | Executable program                      |
+| NE3 Template.xlsm           | Empty Excel template                    |
+| NE3 Program Parameters.xlsm | Example Excel table                     |
 
 ## Requirements and compatibility
 This Python script requires Python 2.7 being installed on your computer.
@@ -38,6 +38,12 @@ This Python script requires Python 2.7 being installed on your computer.
 The executable program nepgDump.exe (created from the script by using PyInstaller) can be executed on any Windows PC even without a Python installation.
 
 The script has been tested with NE3 program files created by the Nord Sound Manager v6.74 and NE3 program files downloaded from the Nord Homepage. However, it is assumed to be compatible with all existing versions of NE3 program files.
+
+## History
+14.03.2017  Version 1.0  Initial Version
+25.10.2017  Version 1.1  Detection of Piano models corrected,
+                         Clavinet pick-up type removed since it cannot
+                         be determined from program file
 
 ## Acknowledgement
 Some basic ideas have been taken from a similar dump script for Nord Electro 4 program files. It has been written by Christian E. and can be found on GitHub by using the following link: https://github.com/10x10sw/NordUser/tree/master/DumpNE4P

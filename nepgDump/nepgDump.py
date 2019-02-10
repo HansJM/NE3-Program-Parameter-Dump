@@ -14,10 +14,14 @@
 #                -d DST, --dst DST  write results to <DST>.csv / <SRC>.csv with '-d $'
 #                -f, --folder       process all .nepg files in folder <SRC>
 #
-# Version:     1.0
+# Version:     1.1
 #
 # Author:      Hans Juergen M.
-# Date:        14.03.2017
+#
+# History:     14.03.2017  Version 1.0  Initial Version
+#              25.10.2017  Version 1.1  Detection of Piano models corrected,
+#                                       Clavinet pick-up type removed since it cannot
+#                                       be determined from program file
 #
 # MIT License
 #
@@ -44,7 +48,7 @@
 import sys, os, argparse
 import nepgParser, nepgOut
 
-version = 1.0
+version = 1.1
 
 print "\nnepgDump - Nord Electro 3 Program Parameter Dump, Vs {}".format(version)
 print "========================================================\n"

@@ -6,7 +6,8 @@
 #              from NE3 program files 
 #
 # Author:      Hans Juergen M.
-# Date:        14.03.2017
+#
+# Date:        25.10.2017
 # ==============================================================================
 import collections
 
@@ -36,11 +37,11 @@ def getInt(msb, lsb, offset):
 def parse(data):
 
   # NE3 program parameters
-  nepgParms = collections.OrderedDict([('progLoc', ''), ('progName', ''), ('instr', ''), ('pianoCategory', ''), ('pianoModel', ''), ('clavPickUp', ''),\
-    ('clavEq', ''), ('organModel', ''), ('organDrawbars#1', ''), ('organVib#1', ''), ('organPerc#1', ''), ('organDrawbars#2', ''), ('organVib#2', ''),\
-    ('organPerc#2', ''), ('organRotarySpeed', ''), ('organPresetSplit', ''), ('sampleNo', ''), ('sampleEnv', ''), ('eff1Type', ''), ('eff1Rate', ''),\
-    ('eff2Type', ''), ('eff2Rate', ''), ('spkCompType', ''), ('spkCompRate', ''), ('revType', ''), ('revMix', ''), ('eqState', ''), ('eqBassGain', ''),\
-    ('eqMidFreq', ''), ('eqMidGain', ''), ('eqTrebleGain', ''), ('progGain', '')])
+  nepgParms = collections.OrderedDict([('progLoc', ''), ('progName', ''), ('instr', ''), ('pianoCategory', ''), ('pianoModel', ''), ('clavEq', ''),\
+    ('organModel', ''), ('organDrawbars#1', ''), ('organVib#1', ''), ('organPerc#1', ''), ('organDrawbars#2', ''), ('organVib#2', ''), ('organPerc#2', ''),\
+    ('organRotarySpeed', ''), ('organPresetSplit', ''), ('sampleNo', ''), ('sampleEnv', ''), ('eff1Type', ''), ('eff1Rate', ''), ('eff2Type', ''),\
+    ('eff2Rate', ''), ('spkCompType', ''), ('spkCompRate', ''), ('revType', ''), ('revMix', ''), ('eqState', ''), ('eqBassGain', ''), ('eqMidFreq', ''),\
+    ('eqMidGain', ''), ('eqTrebleGain', ''), ('progGain', '')])
   
   # Program location (0x0e, mask 0xff)
   b = ord(data[0x0e])
@@ -72,31 +73,31 @@ def parse(data):
     nepgParms['organModel'] = organModels[i]
   
   if nepgParms['instr'] == 'Piano':
-    # Piano model
-    #   data[0x52] & 0xc0:
-    #     0x00: Model 1
-    #     0x40: Model 2
-    #     0x80: Model 3
-    pianoModels = [1, 2, 3, '']
-    i = (ord(data[0x52]) & 0xc0) >> 6
-    nepgParms['pianoModel'] = pianoModels[i]
+    if nepgParms['pianoCategory'] == 'Grand':
+      # Grand Piano model
+      #   (data[0x51] & 0x1f) | (data[0x52] & 0xc0)
+      nepgParms['pianoModel'] = str(((ord(data[0x51]) & 0x1f) << 2) | ((ord(data[0x52]) & 0xc0) >> 6) + 1)
     
-    if nepgParms['pianoCategory'] == 'Clav/Hps':
-      # Clavinet pick-up/Harpsichord model
-      #   data[0x55] & 0x1c:
-      #     0x00: CA, Model 1
-      #     0x04: CB, Model 1
-      #     0x08: DA, Model 1
-      #     0x0c: DB, Model 1
-      #     0x10: Model 2 (Harpsichord)
-      clavPickUps = ['CA', 'CB', 'DA', 'DB']
-      i = (ord(data[0x55]) & 0x1c) >> 2
-      if i in [0, 1, 2, 3]:
-        nepgParms['clavPickUp'] = clavPickUps[i]
-        nepgParms['pianoModel'] = 1
-      elif i == 4:
-        nepgParms['pianoModel'] = 2
-      
+    elif nepgParms['pianoCategory'] == 'Upright':
+      # Upright Piano model
+      #   (data[0x52] & 0x3f) | (data[0x53] & 0x80)
+      nepgParms['pianoModel'] = str(((ord(data[0x52]) & 0x3f) << 1) | ((ord(data[0x53]) & 0x80) >> 7) + 1)
+
+    elif nepgParms['pianoCategory'] == 'EPiano':
+      # EPiano model
+      #   data[0x53] & 0x7f
+      nepgParms['pianoModel'] = str((ord(data[0x53]) & 0x7f) + 1)
+    
+    elif nepgParms['pianoCategory'] == 'Wurl':
+      # Wurlitzer Piano model
+      #   data[0x54] & 0xfe
+      nepgParms['pianoModel'] = str(((ord(data[0x54]) & 0xfe) >> 1) + 1)
+
+    elif nepgParms['pianoCategory'] == 'Clav/Hps':
+      # Clavinet/Harpsichord model
+      #   (data[0x54] & 0x01) | (data[0x55] & 0xfc)
+      nepgParms['pianoModel'] = str(((ord(data[0x54]) & 0x01) << 7) | ((ord(data[0x55]) & 0xfc) >> 2) + 1)
+
       # Clavinet filter settings
       #   data[0x57] & 0xf0:
       #     0x10: Soft

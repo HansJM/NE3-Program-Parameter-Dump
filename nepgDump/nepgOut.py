@@ -6,7 +6,8 @@
 #              NE3 program parameters
 #
 # Author:      Hans Juergen M.
-# Date:        14.03.2017
+#
+# Date:        25.10.2017
 # ==============================================================================
 import csv
 
@@ -31,7 +32,6 @@ def printScreen(inFile, nepgParms):
     str += '\n  Category:       {}'.format(nepgParms['pianoCategory'])
     str += '\n  Model:          {}'.format(nepgParms['pianoModel'])
     if nepgParms['pianoCategory'] == 'Clav/Hps':
-      str += '\n  Pick-Up:        {}'.format(nepgParms['clavPickUp'])
       str += '\n  Clav EQ:        {}'.format(nepgParms['clavEq'])
   elif nepgParms['instr'] == 'Organ':
     str += ', {}'.format(nepgParms['organModel'])
@@ -102,7 +102,7 @@ def printScreen(inFile, nepgParms):
 # ------------------------------------------------------------------------------
 def writeCsvHeader(fOut):
 
-  csvHeader = ['Location', 'Program Name', 'Instrument', 'Piano Category', 'Piano Model', 'Clav Pick-Up', 'Clav EQ',\
+  csvHeader = ['Location', 'Program Name', 'Instrument', 'Piano Category', 'Piano Model', 'Clav EQ',\
     'Organ Model', 'Organ Drawbars (1/Lo)', 'Vibrato/Chorus (1/Lo)', 'Percussion (1/Lo)', 'Organ Drawbars (2/Up)',\
     'Vibrato/Chorus (2/Up)', 'Percussion (2/Up)', 'Rotary Speed', 'Split', 'Sample No', 'Sample Env',\
     'Effect1', 'Rate', 'Effect2', 'Rate', 'Speaker/Comp', 'Rate', 'Reverb', 'Mix',\

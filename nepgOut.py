@@ -5,9 +5,9 @@
 # Description: Contains functions for screen and file output of
 #              NE3 program parameters
 #
-# Author:      Hans Juergen M.
+# Author:      Hans Juergen Miks
 #
-# Date:        25.10.2017
+# Date:        17.06.2020
 # ==============================================================================
 import csv
 
@@ -104,7 +104,7 @@ def writeCsvHeader(fOut):
 
   csvHeader = ['Location', 'Program Name', 'Instrument', 'Piano Category', 'Piano Model', 'Clav EQ',\
     'Organ Model', 'Organ Drawbars (1/Lo)', 'Vibrato/Chorus (1/Lo)', 'Percussion (1/Lo)', 'Organ Drawbars (2/Up)',\
-    'Vibrato/Chorus (2/Up)', 'Percussion (2/Up)', 'Rotary Speed', 'Split', 'Sample No', 'Sample Env',\
+    'Vibrato/Chorus (2/Up)', 'Percussion (2/Up)', 'Rotary Speed', 'Preset/Split', 'Sample No', 'Sample Env',\
     'Effect1', 'Rate', 'Effect2', 'Rate', 'Speaker/Comp', 'Rate', 'Reverb', 'Mix',\
     'Equalizer', 'Bass [dB]', 'Mid Freq [Hz]', 'Mid Gain [dB]', 'Treble [dB]', 'Program Gain']
   writer = csv.writer(fOut)
@@ -126,10 +126,10 @@ def writeCsvHeader(fOut):
 # ------------------------------------------------------------------------------
 def writeCsvLine(fOut, nepgName, nepgParms):
 
-  # Add a leading "'" to float numbers to force formatting as text in Excel
+  # Add a leading whitespace character to float numbers to force formatting as text in Excel
   for key, value in nepgParms.items():
     if isinstance(value, float):
-      nepgParms[key] = " " + str(value)
+      nepgParms[key] = ' ' + str(value)
 
   # Add program name to parameter list
   nepgParms['progName'] = nepgName

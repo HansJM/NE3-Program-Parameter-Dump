@@ -5,9 +5,9 @@
 # Description: Contains functions to extract program parameters
 #              from NE3 program files 
 #
-# Author:      Hans Juergen M.
+# Author:      Hans Juergen Miks
 #
-# Date:        25.10.2017
+# Date:        17.06.2020
 # ==============================================================================
 import collections
 
@@ -200,7 +200,7 @@ def parse(data):
       #   data[0x24] & 0x20:
       #     0x00: 1/Lo
       #     0x20: 2/Up
-      organPresetSplitSettings = ['1/Lo', '2/Up', 'Split + 1/Lo', 'Split + 2/Up']
+      organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
       i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x20) >> 5)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
       
@@ -266,7 +266,7 @@ def parse(data):
       #   data[0x24] & 0x08:
       #     0x00: 1/Lo
       #     0x08: 2/Up
-      organPresetSplitSettings = ['1/Lo', '2/Up', 'Split + 1/Lo', 'Split + 2/Up']
+      organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
       i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x08) >> 3)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
 
@@ -324,7 +324,7 @@ def parse(data):
       #   data[0x24] & 0x10:
       #     0x00: 1/Lo
       #     0x10: 2/Up
-      organPresetSplitSettings = ['1/Lo', '2/Up', 'Split + 1/Lo', 'Split + 2/Up']
+      organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
       i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x10) >> 4)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
 
@@ -349,9 +349,10 @@ def parse(data):
     nepgParms['sampleEnv'] = sampleEnvSettings[i]
 
   # Effect 1
-  #   data[0x7b] & 0x04:
+  #   Organ      / Piano, Sample Lib
+  #   data[0x70] / data[0x7b] & 0x40:
   #     0x00: Off
-  #     0x04: On
+  #     0x40: On
   #   data[0x63] & 0x1e:
   #     0x00: Trem1
   #     0x02: Trem2
@@ -363,7 +364,9 @@ def parse(data):
   #     0x0e: P-Wa 
   #     0x10: RM
   #   data[0x62..0x63] & 0x0fe0: Rate
-  if ord(data[0x7b]) & 0x40:  
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x40) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x40) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x40):
     eff1Types = ['Trem1', 'Trem2', 'Trem3', 'Pan1', 'Pan2', 'Pan3', 'A-Wa', 'P-Wa', 'RM', '', '', '', '', '', '', '']
     i = (ord(data[0x63]) & 0x1e) >> 1
     nepgParms['eff1Type'] = eff1Types[i]
@@ -374,7 +377,8 @@ def parse(data):
     nepgParms['eff1Type'] = 'Off'
   
   # Effect 2
-  #   data[0x7b] & 0x20:
+  #   Organ      / Piano, Sample Lib
+  #   data[0x70] / data[0x7b] & 0x20:
   #     0x00: Off
   #     0x20: On
   #   data[0x64..0x65] & 0x03c0:
@@ -388,7 +392,9 @@ def parse(data):
   #     0x01c0: Chor2
   #     0x0200: Chor3
   #   data[0x63..0x64] & 0x01fc00: Rate
-  if (ord(data[0x7b]) & 0x20) > 0:  
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x20) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x20) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x20):
     eff2Types = ['Phas1', 'Phas2', 'Phas3', 'Flang1', 'Flang2', 'Flang3', 'Chor1', 'Chor2', 'Chor3', '', '', '', '', '', '', '']
     i = ((ord(data[0x64]) << 2) | (ord(data[0x65]) >> 6)) & 0x0f
     nepgParms['eff2Type'] = eff2Types[i]
@@ -399,7 +405,8 @@ def parse(data):
     nepgParms['eff2Type'] = 'Off'
 
   # Speaker/Comp
-  #   data[0x7b] & 0x10:
+  #   Organ      / Piano, Sample Lib
+  #   data[0x70] / data[0x7b] & 0x10:
   #     0x00: Off
   #     0x10: On
   #   data[0x66] & 0x0070:
@@ -409,7 +416,9 @@ def parse(data):
   #     0x03: Comp
   #     0x04: Rotary
   #   data[0x65..0x66] & 0x3f80: Rate
-  if (ord(data[0x7b]) & 0x10) == 0x10:  
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x10) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x10) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x10):
     spkCompTypes = ['Small', 'JC', 'Twin', 'Comp', 'Rotary', '', '', '']
     i = (ord(data[0x66]) & 0x70) >> 4
     nepgParms['spkCompType'] = spkCompTypes[i]
@@ -420,7 +429,8 @@ def parse(data):
     nepgParms['spkCompType'] = 'Off'
 
   # Reverb
-  #   data[0x7b] & 0x08:
+  #   Organ      / Piano, Sample Lib
+  #   data[0x70] / data[0x7b] & 0x08:
   #     0x00: Off
   #     0x08: On
   #   data[0x67] & 0x001c:
@@ -430,7 +440,9 @@ def parse(data):
   #     0x0c: Stage Soft
   #     0x10: Hall Soft
   #   data[0x66..0x67] & 0x0fe0: Mix
-  if (ord(data[0x7b]) & 0x08) > 0:  
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x08) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x08) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x08):
     revTypes = ['Room', 'Stage', 'Hall', 'Stage Soft', 'Hall Soft', '', '', '']
     i = (ord(data[0x67]) & 0x1c) >> 2
     nepgParms['revType'] = revTypes[i]
@@ -441,14 +453,17 @@ def parse(data):
     nepgParms['revType'] = 'Off'
 
   # Equalizer
-  #   data[0x7b] & 0x80:
+  #   Organ      / Piano, Sample Lib
+  #   data[0x70] / data[0x7b] & 0x80:
   #     0x00: Off
   #     0x80: On
   #   0x5f..0x62 & 0xfe000000: Bass Gain
   #   0x5f..0x62 & 0x01fc0000: Mid Freq
   #   0x5f..0x62 & 0x0003f800: Mid Gain
   #   0x5f..0x62 & 0x000007f0: Treble Gain
-  if (ord(data[0x7b]) & 0x80) > 0:  
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x80) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x80) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x80):
     nepgParms['eqState'] = 'On'
 
     i = (ord(data[0x5f]) >> 1) & 0x7f
@@ -469,11 +484,6 @@ def parse(data):
   else:
     nepgParms['eqState'] = 'Off'
   
-  # Program Gain
-  #   data[0x67..0x68] & 0x03f8: Gain
-  i = getInt(data[0x67], data[0x68], 3)
-  nepgParms['progGain'] = round(i * 10.0 / 0x7f, 1)
-
   if nepgParms['instr'] == 'Organ':
     # Organ Rotary Speed
     #   active only if Speaker/Comp is on and type = Rotary
@@ -488,5 +498,10 @@ def parse(data):
       nepgParms['organRotarySpeed'] = organRotarySettings[i]
     else:
       nepgParms['organRotarySpeed'] = 'Off'
+
+  # Program Gain
+  #   data[0x67..0x68] & 0x03f8: Gain
+  i = getInt(data[0x67], data[0x68], 3)
+  nepgParms['progGain'] = round(i * 10.0 / 0x7f, 1)
 
   return nepgParms

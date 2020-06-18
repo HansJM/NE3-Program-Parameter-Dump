@@ -2,10 +2,9 @@
 # nepgDump - Nord Electro 3 Program Parameter Dump
 #
 # Module:      nepgDump.py (main module)
-# Description: Python script to extract the program parameters from
-#              NE3 program files and either print them to screen
-#              or write them to a .csv file for import in Excel.
-#              The script is compatible with Python 2.7.
+# Description: Python script to extract the program parameters from NE3 program
+#              files and either print them to screen or write them to a .csv file
+#              for import in Excel. The script is compatible with Python 2.7.
 #
 #              Usage: nepgDump.py [-h] [-d DST] [-f] SRC
 #
@@ -14,18 +13,22 @@
 #                -d DST, --dst DST  write results to <DST>.csv / <SRC>.csv with '-d $'
 #                -f, --folder       process all .nepg files in folder <SRC>
 #
-# Version:     1.1
+# Version:     1.2
 #
-# Author:      Hans Juergen M.
+# Author:      Hans Juergen Miks
 #
 # History:     14.03.2017  Version 1.0  Initial Version
-#              25.10.2017  Version 1.1  Detection of Piano models corrected,
+#              25.10.2017  Version 1.1  Evaluation of Piano models corrected,
 #                                       Clavinet pick-up type removed since it cannot
-#                                       be determined from program file
+#                                       be determined from .nepg file
+#              17.06.2020  Version 1.2  Evaluation of Organ effect settings corrected,
+#                                       Check for unsupported .nepg file format added,
+#                                       Note: File format changed with unknown Nord
+#                                       Sound Manager version above 7.10
 #
 # MIT License
 #
-# Copyright (c) 2017 HansJM
+# Copyright (c) 2020 HansJM
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +51,7 @@
 import sys, os, argparse
 import nepgParser, nepgOut
 
-version = 1.1
+version = 1.2
 
 print "\nnepgDump - Nord Electro 3 Program Parameter Dump, Vs {}".format(version)
 print "========================================================\n"
@@ -101,17 +104,22 @@ for inFile in inFiles:
 
       # Check for valid NE3 program file
       if (data[0x00:0x04] == 'CBIN') and (data[0x08:0x0c] == 'nepg'):
-        # Parse NE3 program file
-        nepgParms = nepgParser.parse(data)
+        # Check for supported file format
+        if ord(data[0x04]) == 0:
+          # Parse NE3 program file
+          nepgParms = nepgParser.parse(data)
     
-        if outFile == '':
-          # Print results to screen 
-          nepgOut.printScreen(inFile, nepgParms)
+          if outFile == '':
+            # Print results to screen 
+            nepgOut.printScreen(inFile, nepgParms)
+          else:
+            # Write results to .csv file
+            print "Processing file '{}'".format(inPath)
+            nepgName, ext = os.path.splitext(os.path.basename(inPath))
+            nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
         else:
-          # Write results to .csv file
-          print "Processing file '{}'".format(inPath)
-          nepgName, ext = os.path.splitext(os.path.basename(inPath))
-          nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
+          print "Error: File '{}' comprises unsupported file format".format(inPath)
+          print "(Note: File format changed with unknown Nord Sound Manager version above v7.10)"
       else:
         print "Error: File '{}' is not a valid NE3 program file".format(inPath)
 

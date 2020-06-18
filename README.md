@@ -37,7 +37,7 @@ This Python script requires Python 2.7 being installed on your computer.
 
 The executable program nepgDump.exe (created from the script by using PyInstaller) can be executed on any Windows PC even without a Python installation.
 
-The script has been tested with NE3 program files created by the Nord Sound Manager v6.74 and NE3 program files downloaded from the Nord Homepage. However, it is assumed to be compatible with all existing versions of NE3 program files.
+The script has been tested with NE3 program files created by the Nord Sound Manager v7.10 and NE3 program files downloaded from the Nord Homepage. Apparently the file format has changed with a newer version of the Nord Sound Manager. Please note that this new format is currently not supported.
 
 ## History
 Date | Version | Release Notes

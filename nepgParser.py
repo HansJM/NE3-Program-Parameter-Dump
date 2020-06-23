@@ -7,22 +7,22 @@
 #
 # Author:      Hans Juergen Miks
 #
-# Date:        17.06.2020
+# Date:        21.06.2020
 # ==============================================================================
 import collections
 
 # ------------------------------------------------------------------------------
 # Function:    getInt()
-# Parameters:  msb     high byte
-#              lsb     low byte
-#              offset  number of lowest relevant bit
-# Returns:     i       resulting 7 bit as integer value
+# Parameters:  msb   high byte
+#              lsb   low byte
+#              offs  number of lowest relevant bit
+# Returns:     i     resulting 7 bit as integer value
 #
 # Description: Get integer value from 7 out of 16 bit with offset
 # ------------------------------------------------------------------------------
-def getInt(msb, lsb, offset):
+def getInt(msb, lsb, offs):
 
-  i = ((ord(msb) << (8-offset)) | (ord(lsb) >> offset)) & 0x7f
+  i = ((ord(msb) << (8-offs)) | (ord(lsb) >> offs)) & 0x7f
 
   return i
 
@@ -30,11 +30,12 @@ def getInt(msb, lsb, offset):
 # ------------------------------------------------------------------------------
 # Function:    parse()
 # Parameters:  data       string of input data from NE3 program file
+#              offs       data offset for different file formats
 # Returns:     nepgParms  NE3 program parameters
 #
 # Description: parse NE3 program file contents and store parameters
 # ------------------------------------------------------------------------------
-def parse(data):
+def parse(data, offs):
 
   # NE3 program parameters
   nepgParms = collections.OrderedDict([('progLoc', ''), ('progName', ''), ('instr', ''), ('pianoCategory', ''), ('pianoModel', ''), ('clavEq', ''),\
@@ -76,27 +77,27 @@ def parse(data):
     if nepgParms['pianoCategory'] == 'Grand':
       # Grand Piano model
       #   (data[0x51] & 0x1f) | (data[0x52] & 0xc0)
-      nepgParms['pianoModel'] = str(((ord(data[0x51]) & 0x1f) << 2) | ((ord(data[0x52]) & 0xc0) >> 6) + 1)
+      nepgParms['pianoModel'] = str(((ord(data[0x51+offs]) & 0x1f) << 2) | ((ord(data[0x52+offs]) & 0xc0) >> 6) + 1)
     
     elif nepgParms['pianoCategory'] == 'Upright':
       # Upright Piano model
       #   (data[0x52] & 0x3f) | (data[0x53] & 0x80)
-      nepgParms['pianoModel'] = str(((ord(data[0x52]) & 0x3f) << 1) | ((ord(data[0x53]) & 0x80) >> 7) + 1)
+      nepgParms['pianoModel'] = str(((ord(data[0x52+offs]) & 0x3f) << 1) | ((ord(data[0x53+offs]) & 0x80) >> 7) + 1)
 
     elif nepgParms['pianoCategory'] == 'EPiano':
       # EPiano model
       #   data[0x53] & 0x7f
-      nepgParms['pianoModel'] = str((ord(data[0x53]) & 0x7f) + 1)
+      nepgParms['pianoModel'] = str((ord(data[0x53+offs]) & 0x7f) + 1)
     
     elif nepgParms['pianoCategory'] == 'Wurl':
       # Wurlitzer Piano model
       #   data[0x54] & 0xfe
-      nepgParms['pianoModel'] = str(((ord(data[0x54]) & 0xfe) >> 1) + 1)
+      nepgParms['pianoModel'] = str(((ord(data[0x54+offs]) & 0xfe) >> 1) + 1)
 
     elif nepgParms['pianoCategory'] == 'Clav/Hps':
       # Clavinet/Harpsichord model
       #   (data[0x54] & 0x01) | (data[0x55] & 0xfc)
-      nepgParms['pianoModel'] = str(((ord(data[0x54]) & 0x01) << 7) | ((ord(data[0x55]) & 0xfc) >> 2) + 1)
+      nepgParms['pianoModel'] = str(((ord(data[0x54+offs]) & 0x01) << 7) | ((ord(data[0x55+offs]) & 0xfc) >> 2) + 1)
 
       # Clavinet filter settings
       #   data[0x57] & 0xf0:
@@ -106,7 +107,7 @@ def parse(data):
       #     0x80: Brilliant
       clavEqSettings = ['Off', 'Soft', 'Med', 'Soft/Med', 'Treb', 'Soft + Treb', 'Med + Treb', 'Soft/Med + Treb',\
         'Brill', 'Soft + Brill', 'Med + Brill', 'Soft/Med + Brill', 'Treb/Brill', 'Soft + Treb/Brill', 'Med + Treb/Brill', 'Soft/Med + Treb/Brill']
-      i = (ord(data[0x57]) & 0xf0) >> 4
+      i = (ord(data[0x57+offs]) & 0xf0) >> 4
       nepgParms['clavEq'] = clavEqSettings[i]
   
   elif nepgParms['instr'] == 'Organ':
@@ -122,25 +123,25 @@ def parse(data):
       #   data[0x30] / data[0x42] & 0xf0: 5th
       #   data[0x30] / data[0x42] & 0x0f: 6th
       #   data[0x31] / data[0x43] & 0xf0: 8th
-      nepgParms['organDrawbars#1'] = str((ord(data[0x2d]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2d]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x2e]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2e]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x2f]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2f]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x30]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x30]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x31]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] = str((ord(data[0x2d+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2d+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x2e+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2e+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x2f+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x2f+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x30+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x30+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x31+offs]) & 0xf0) >> 4)
       
-      nepgParms['organDrawbars#2'] = str((ord(data[0x3f]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x3f]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x40]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x40]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x41]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x41]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x42]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x42]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x43]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] = str((ord(data[0x3f+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x3f+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x40+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x40+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x41+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x41+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x42+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x42+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x43+offs]) & 0xf0) >> 4)
       
       # B3 Vibrato/Chorus
       #   1/Lo       / 2/Up
@@ -155,14 +156,14 @@ def parse(data):
       #     0x40: V3
       #     0x50: C3
       organVibSettings = ['V1', 'C1', 'V2', 'C2', 'V3', 'C3', '', '']
-      if ord(data[0x37]) & 0x08:
-        i = (ord(data[0x37]) & 0x70) >> 4
+      if ord(data[0x37+offs]) & 0x08:
+        i = (ord(data[0x37+offs]) & 0x70) >> 4
         nepgParms['organVib#1'] = organVibSettings[i]
       else:
         nepgParms['organVib#1'] = 'Off'
 
-      if ord(data[0x49]) & 0x08:
-        i = (ord(data[0x49]) & 0x70) >> 4
+      if ord(data[0x49+offs]) & 0x08:
+        i = (ord(data[0x49+offs]) & 0x70) >> 4
         nepgParms['organVib#2'] = organVibSettings[i]
       else:
         nepgParms['organVib#2'] = 'Off'
@@ -181,14 +182,14 @@ def parse(data):
       #     0x40: Soft/Fast
       #     0x60: Fast
       organPercSettings = ['Soft', 'Soft + Third', '', 'Third', 'Soft/Fast', 'Soft/Fast + Third', 'Fast', 'Fast + Third']
-      if ord(data[0x38]) & 0x08:
-        i = (ord(data[0x38]) & 0x70) >> 4
+      if ord(data[0x38+offs]) & 0x08:
+        i = (ord(data[0x38+offs]) & 0x70) >> 4
         nepgParms['organPerc#1'] = organPercSettings[i]
       else:
         nepgParms['organPerc#1'] = 'Off'
 
-      if ord(data[0x4a]) & 0x08:
-        i = (ord(data[0x4a]) & 0x70) >> 4
+      if ord(data[0x4a+offs]) & 0x08:
+        i = (ord(data[0x4a+offs]) & 0x70) >> 4
         nepgParms['organPerc#2'] = organPercSettings[i]
       else:
         nepgParms['organPerc#2'] = 'Off'
@@ -201,7 +202,7 @@ def parse(data):
       #     0x00: 1/Lo
       #     0x20: 2/Up
       organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
-      i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x20) >> 5)
+      i = ((ord(data[0x23+offs]) & 0x20) >> 4) | ((ord(data[0x24+offs]) & 0x20) >> 5)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
       
     elif nepgParms['organModel'] == 'Farf':
@@ -216,25 +217,25 @@ def parse(data):
       #   data[0x36] / data[0x48] & 0x02: Flute4
       #   data[0x36] / data[0x48] & 0x01: Str4
       #   data[0x37] / data[0x49] & 0x80: 2 2/3
-      nepgParms['organDrawbars#1'] = str((ord(data[0x36]) & 0x80) >> 7)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x40) >> 6)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x20) >> 5)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x10) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x08) >> 3)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x04) >> 2)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36]) & 0x02) >> 1)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x36]) & 0x01)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x37]) & 0x80) >> 7)
+      nepgParms['organDrawbars#1'] = str((ord(data[0x36+offs]) & 0x80) >> 7)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x40) >> 6)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x20) >> 5)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x10) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x08) >> 3)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x04) >> 2)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x36+offs]) & 0x02) >> 1)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x36+offs]) & 0x01)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x37+offs]) & 0x80) >> 7)
 
-      nepgParms['organDrawbars#2'] = str((ord(data[0x48]) & 0x80) >> 7)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x40) >> 6)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x20) >> 5)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x10) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x08) >> 3)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x04) >> 2)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48]) & 0x02) >> 1)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x48]) & 0x01)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x49]) & 0x80) >> 7)
+      nepgParms['organDrawbars#2'] = str((ord(data[0x48+offs]) & 0x80) >> 7)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x40) >> 6)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x20) >> 5)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x10) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x08) >> 3)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x04) >> 2)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x48+offs]) & 0x02) >> 1)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x48+offs]) & 0x01)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x49+offs]) & 0x80) >> 7)
 
       # Farfisa Vibrato
       #   1/Lo       / 2/Up
@@ -247,14 +248,14 @@ def parse(data):
       #     0x02: Light2
       #     0x03: Heavy2
       organVibSettings = ['Light1', 'Heavy1', 'Light2', 'Heavy2']
-      if ord(data[0x38]) & 0x80:
-        i = ord(data[0x37]) & 0x03
+      if ord(data[0x38+offs]) & 0x80:
+        i = ord(data[0x37+offs]) & 0x03
         nepgParms['organVib#1'] = organVibSettings[i]
       else:
         nepgParms['organVib#1'] = 'Off'
       
-      if ord(data[0x4a]) & 0x80:
-        i = ord(data[0x49]) & 0x03
+      if ord(data[0x4a+offs]) & 0x80:
+        i = ord(data[0x49+offs]) & 0x03
         nepgParms['organVib#2'] = organVibSettings[i]
       else:
         nepgParms['organVib#2'] = 'Off'
@@ -267,7 +268,7 @@ def parse(data):
       #     0x00: 1/Lo
       #     0x08: 2/Up
       organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
-      i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x08) >> 3)
+      i = ((ord(data[0x23+offs]) & 0x20) >> 4) | ((ord(data[0x24+offs]) & 0x08) >> 3)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
 
     elif nepgParms['organModel'] == 'Vox':
@@ -282,37 +283,37 @@ def parse(data):
       #   data[0x34] / data[0x46] & 0x0f: IV
       #   data[0x35] / data[0x47] & 0xf0: Sine
       #   data[0x35] / data[0x47] & 0x0f: Triangle
-      nepgParms['organDrawbars#1'] = str(ord(data[0x31]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x32]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x32]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x33]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x33]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x34]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x34]) & 0x0f)
-      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x35]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x35]) & 0x0f)
+      nepgParms['organDrawbars#1'] = str(ord(data[0x31+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x32+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x32+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x33+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x33+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x34+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x34+offs]) & 0x0f)
+      nepgParms['organDrawbars#1'] += ' - ' + str((ord(data[0x35+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#1'] += ' - ' + str(ord(data[0x35+offs]) & 0x0f)
 
-      nepgParms['organDrawbars#2'] = str(ord(data[0x43]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x44]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x44]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x45]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x45]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x46]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x46]) & 0x0f)
-      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x47]) & 0xf0) >> 4)
-      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x47]) & 0x0f)
+      nepgParms['organDrawbars#2'] = str(ord(data[0x43+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x44+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x44+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x45+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x45+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x46+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x46+offs]) & 0x0f)
+      nepgParms['organDrawbars#2'] += ' - ' + str((ord(data[0x47+offs]) & 0xf0) >> 4)
+      nepgParms['organDrawbars#2'] += ' - ' + str(ord(data[0x47+offs]) & 0x0f)
 
       # Vox Vibrato/Chorus
       #   1/Lo       / 2/Up
       #   data[0x37] / data[0x49] & 0x04:
       #     0x00: Off
       #     0x04: On
-      if ord(data[0x37]) & 0x04:
+      if ord(data[0x37+offs]) & 0x04:
         nepgParms['organVib#1'] = 'On'
       else:
         nepgParms['organVib#1'] = 'Off'
 
-      if ord(data[0x49]) & 0x04:
+      if ord(data[0x49+offs]) & 0x04:
         nepgParms['organVib#2'] = 'On'
       else:
         nepgParms['organVib#2'] = 'Off'
@@ -325,13 +326,13 @@ def parse(data):
       #     0x00: 1/Lo
       #     0x10: 2/Up
       organPresetSplitSettings = ['1/Lo', '2/Up', '1/Lo + Split', '2/Up + Split']
-      i = ((ord(data[0x23]) & 0x20) >> 4) | ((ord(data[0x24]) & 0x10) >> 4)
+      i = ((ord(data[0x23+offs]) & 0x20) >> 4) | ((ord(data[0x24+offs]) & 0x10) >> 4)
       nepgParms['organPresetSplit'] = organPresetSplitSettings[i]
 
   elif nepgParms['instr'] == 'Sample Lib':
     # Sample Number
     #   data[0x56] & 0xf8
-    nepgParms['sampleNo'] = ((ord(data[0x56]) & 0xf8) >> 3) + 1
+    nepgParms['sampleNo'] = ((ord(data[0x56+offs]) & 0xf8) >> 3) + 1
 
     # Sample Environment settings (Release / Attack/Velocity Dynamic)
     #   data[0x57..0x58] & 0x0180:
@@ -345,7 +346,7 @@ def parse(data):
     #     0x0600: SlowAt/VelDyn
     sampleEnvSettings = ['Off', 'Rel1', 'Rel2', 'Rel3', 'SlowAt', 'Rel1 + SlowAt', 'Rel2 + SlowAt', 'Rel3 + SlowAT',\
       'VelDyn', 'Rel1 + VelDyn', 'Rel2 + VelDyn', 'Rel3 + VelDyn', 'SlowAt/VelDyn', 'Rel1 + SlowAt/VelDyn', 'Rel2 + SlowAt/VelDyn', 'Rel3 + SlowAt/VelDyn']
-    i = ((ord(data[0x57]) << 1) | (ord(data[0x58]) >> 7)) & 0x0f
+    i = ((ord(data[0x57+offs]) << 1) | (ord(data[0x58+offs]) >> 7)) & 0x0f
     nepgParms['sampleEnv'] = sampleEnvSettings[i]
 
   # Effect 1
@@ -364,14 +365,14 @@ def parse(data):
   #     0x0e: P-Wa 
   #     0x10: RM
   #   data[0x62..0x63] & 0x0fe0: Rate
-  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x40) or\
-     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x40) or\
-     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x40):
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70+offs]) & 0x40) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b+offs]) & 0x40) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b+offs]) & 0x40):
     eff1Types = ['Trem1', 'Trem2', 'Trem3', 'Pan1', 'Pan2', 'Pan3', 'A-Wa', 'P-Wa', 'RM', '', '', '', '', '', '', '']
-    i = (ord(data[0x63]) & 0x1e) >> 1
+    i = (ord(data[0x63+offs]) & 0x1e) >> 1
     nepgParms['eff1Type'] = eff1Types[i]
   
-    i = getInt(data[0x62], data[0x63], 5)
+    i = getInt(data[0x62+offs], data[0x63+offs], 5)
     nepgParms['eff1Rate'] = round(i * 10.0 / 0x7f, 1)
   else:
     nepgParms['eff1Type'] = 'Off'
@@ -392,14 +393,14 @@ def parse(data):
   #     0x01c0: Chor2
   #     0x0200: Chor3
   #   data[0x63..0x64] & 0x01fc00: Rate
-  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x20) or\
-     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x20) or\
-     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x20):
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70+offs]) & 0x20) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b+offs]) & 0x20) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b+offs]) & 0x20):
     eff2Types = ['Phas1', 'Phas2', 'Phas3', 'Flang1', 'Flang2', 'Flang3', 'Chor1', 'Chor2', 'Chor3', '', '', '', '', '', '', '']
-    i = ((ord(data[0x64]) << 2) | (ord(data[0x65]) >> 6)) & 0x0f
+    i = ((ord(data[0x64+offs]) << 2) | (ord(data[0x65+offs]) >> 6)) & 0x0f
     nepgParms['eff2Type'] = eff2Types[i]
 
-    i = getInt(data[0x63], data[0x64], 2)
+    i = getInt(data[0x63+offs], data[0x64+offs], 2)
     nepgParms['eff2Rate'] = round(i * 10.0 / 0x7f, 1)
   else:
     nepgParms['eff2Type'] = 'Off'
@@ -416,14 +417,14 @@ def parse(data):
   #     0x03: Comp
   #     0x04: Rotary
   #   data[0x65..0x66] & 0x3f80: Rate
-  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x10) or\
-     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x10) or\
-     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x10):
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70+offs]) & 0x10) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b+offs]) & 0x10) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b+offs]) & 0x10):
     spkCompTypes = ['Small', 'JC', 'Twin', 'Comp', 'Rotary', '', '', '']
-    i = (ord(data[0x66]) & 0x70) >> 4
+    i = (ord(data[0x66+offs]) & 0x70) >> 4
     nepgParms['spkCompType'] = spkCompTypes[i]
   
-    i = getInt(data[0x65], data[0x66], 7)
+    i = getInt(data[0x65+offs], data[0x66+offs], 7)
     nepgParms['spkCompRate'] = round(i * 10.0 / 0x7f, 1)
   else:
     nepgParms['spkCompType'] = 'Off'
@@ -440,14 +441,14 @@ def parse(data):
   #     0x0c: Stage Soft
   #     0x10: Hall Soft
   #   data[0x66..0x67] & 0x0fe0: Mix
-  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x08) or\
-     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x08) or\
-     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x08):
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70+offs]) & 0x08) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b+offs]) & 0x08) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b+offs]) & 0x08):
     revTypes = ['Room', 'Stage', 'Hall', 'Stage Soft', 'Hall Soft', '', '', '']
-    i = (ord(data[0x67]) & 0x1c) >> 2
+    i = (ord(data[0x67+offs]) & 0x1c) >> 2
     nepgParms['revType'] = revTypes[i]
    
-    i = getInt(data[0x66], data[0x67], 5)
+    i = getInt(data[0x66+offs], data[0x67+offs], 5)
     nepgParms['revMix'] = round(i * 10.0 / 0x7f, 1)
   else:
     nepgParms['revType'] = 'Off'
@@ -457,29 +458,30 @@ def parse(data):
   #   data[0x70] / data[0x7b] & 0x80:
   #     0x00: Off
   #     0x80: On
-  #   0x5f..0x62 & 0xfe000000: Bass Gain
-  #   0x5f..0x62 & 0x01fc0000: Mid Freq
-  #   0x5f..0x62 & 0x0003f800: Mid Gain
-  #   0x5f..0x62 & 0x000007f0: Treble Gain
-  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70]) & 0x80) or\
-     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b]) & 0x80) or\
-     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b]) & 0x80):
+  #   data[0x5f..0x62]:
+  #     & 0xfe000000: Bass Gain
+  #     & 0x01fc0000: Mid Freq
+  #     & 0x0003f800: Mid Gain
+  #     & 0x000007f0: Treble Gain
+  if (nepgParms['instr'] == 'Organ') and (ord(data[0x70+offs]) & 0x80) or\
+     (nepgParms['instr'] == 'Piano') and (ord(data[0x7b+offs]) & 0x80) or\
+     (nepgParms['instr'] == 'Sample Lib') and (ord(data[0x7b+offs]) & 0x80):
     nepgParms['eqState'] = 'On'
 
-    i = (ord(data[0x5f]) >> 1) & 0x7f
+    i = (ord(data[0x5f+offs]) >> 1) & 0x7f
     nepgParms['eqBassGain'] = round((i * 30.0 / 0x7f) - 15.0, 1)
   
-    i = getInt(data[0x5f], data[0x60], 2)
+    i = getInt(data[0x5f+offs], data[0x60+offs], 2)
     if i < 64:
       freq = pow(10, i * 0.699/63 + 2.301)
     else:
       freq = pow(10, (i-64) * 0.903/63 + 3.0)
     nepgParms['eqMidFreq'] = int(round(freq/10) * 10)
   
-    i = getInt(data[0x60], data[0x61], 3)
+    i = getInt(data[0x60+offs], data[0x61+offs], 3)
     nepgParms['eqMidGain'] = round((i * 30.0 / 0x7f) - 15.0, 1)
   
-    i = getInt(data[0x61], data[0x62], 4)
+    i = getInt(data[0x61+offs], data[0x62+offs], 4)
     nepgParms['eqTrebleGain'] = round((i * 30.0 / 0x7f) - 15.0, 1)
   else:
     nepgParms['eqState'] = 'Off'
@@ -494,14 +496,14 @@ def parse(data):
     #     0x06: Stop Mode + Fast
     if nepgParms['spkCompType'] == 'Rotary':
       organRotarySettings = ['Slow/Stop', 'Fast', 'Stop Mode + Slow/Stop', 'Stop Mode + Fast']
-      i = (ord(data[0x68]) & 0x06) >> 1
+      i = (ord(data[0x68+offs]) & 0x06) >> 1
       nepgParms['organRotarySpeed'] = organRotarySettings[i]
     else:
       nepgParms['organRotarySpeed'] = 'Off'
 
   # Program Gain
   #   data[0x67..0x68] & 0x03f8: Gain
-  i = getInt(data[0x67], data[0x68], 3)
+  i = getInt(data[0x67+offs], data[0x68+offs], 3)
   nepgParms['progGain'] = round(i * 10.0 / 0x7f, 1)
 
   return nepgParms

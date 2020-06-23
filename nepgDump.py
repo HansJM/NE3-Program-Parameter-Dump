@@ -13,7 +13,7 @@
 #                -d DST, --dst DST  write results to <DST>.csv / <SRC>.csv with '-d $'
 #                -f, --folder       process all .nepg files in folder <SRC>
 #
-# Version:     1.2
+# Version:     1.3
 #
 # Author:      Hans Juergen Miks
 #
@@ -25,6 +25,7 @@
 #                                       Check for unsupported .nepg file format added,
 #                                       Note: File format changed with unknown Nord
 #                                       Sound Manager version above 7.10
+#              21.06.2020  Version 1.3  Support for new .nepg file format added
 #
 # MIT License
 #
@@ -51,7 +52,7 @@
 import sys, os, argparse
 import nepgParser, nepgOut
 
-version = 1.2
+version = 1.3
 
 print "\nnepgDump - Nord Electro 3 Program Parameter Dump, Vs {}".format(version)
 print "========================================================\n"
@@ -104,10 +105,18 @@ for inFile in inFiles:
 
       # Check for valid NE3 program file
       if (data[0x00:0x04] == 'CBIN') and (data[0x08:0x0c] == 'nepg'):
-        # Check for supported file format
-        if ord(data[0x04]) == 0:
+        # Check file format (data[0x04] = 0: initial file format; 1: new file format)
+        if ord(data[0x04]) == 0x00:
+          offs = 0x00
+        elif ord(data[0x04]) == 0x01:
+          offs = 0x14
+        else:
+          # offs = 0xff indicates unknown file format
+          offs = 0xff
+
+        if offs != 0xff:
           # Parse NE3 program file
-          nepgParms = nepgParser.parse(data)
+          nepgParms = nepgParser.parse(data, offs)
     
           if outFile == '':
             # Print results to screen 
@@ -119,7 +128,6 @@ for inFile in inFiles:
             nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
         else:
           print "Error: File '{}' comprises unsupported file format".format(inPath)
-          print "(Note: File format changed with unknown Nord Sound Manager version above v7.10)"
       else:
         print "Error: File '{}' is not a valid NE3 program file".format(inPath)
 

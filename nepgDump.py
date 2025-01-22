@@ -26,7 +26,7 @@
 #                                       Note: File format changed with unknown Nord
 #                                       Sound Manager version above 7.10
 #              21.06.2020  Version 1.3  Support for new .nepg file format added
-#              22.01.2025  Version 1.4  Migrated to Python 3.11
+#              22.01.2025  Version 1.4  Migrated to Python 3.x, some cosmetic changes
 #
 # MIT License
 #
@@ -65,44 +65,44 @@ parser.add_argument("-d", "--dst", help = "write results to <DST>.csv / <SRC>.cs
 parser.add_argument("-f", "--folder", help = "process all .nepg files in folder <SRC>", action = "store_true")
 args = parser.parse_args()
 
-inFolder = ''
-inFiles = ''
-outFile = ''
+in_folder = ''
+in_files = ''
+out_file = ''
 
 if args.folder:
     if os.path.isdir(args.SRC):
-        inFolder = str(args.SRC)
-        inFiles = os.listdir(str(args.SRC))
+        in_folder = str(args.SRC)
+        in_files = os.listdir(str(args.SRC))
     else:
         print("Error: Directory '{}' not found".format(args.SRC))
         sys.exit()    
 else:
-    inFiles = [str(args.SRC) + '.nepg']
+    in_files = [str(args.SRC) + '.nepg']
 
 if args.dst == '$':
-    outFile = str(args.SRC) + '.csv'
+    out_file = str(args.SRC) + '.csv'
 elif args.dst:
-    outFile = str(args.dst) + '.csv'
+    out_file = str(args.dst) + '.csv'
 
 # Prepare .csv output file, if specified
-if outFile != '':
-    fOut = open(outFile, 'w', newline='')
-    fOut.write('sep=,\n')
-    nepgOut.writeCsvHeader(fOut)
+if out_file != '':
+    f_out = open(out_file, 'w', newline='')
+    f_out.write('sep=,\n')
+    nepgOut.write_csv_header(f_out)
 
 # Process input file(s)
-fileCount = 0
-for inFile in inFiles:
-    if inFile.endswith('.nepg'):
-        fileCount += 1
-        if inFolder != '':
-          inPath = inFolder + '\\' + inFile
+file_count = 0
+for in_file in in_files:
+    if in_file.endswith('.nepg'):
+        file_count += 1
+        if in_folder != '':
+          in_path = in_folder + '\\' + in_file
         else:
-          inPath = inFile
+          in_path = in_file
 
-        if os.path.isfile(inPath):
-            fIn = open(inPath, 'rb')
-            data = fIn.read()
+        if os.path.isfile(in_path):
+            f_in = open(in_path, 'rb')
+            data = f_in.read()
 
             # Check for valid NE3 program file
             if (data[0x00:0x04] == b'CBIN') and (data[0x08:0x0c] == b'nepg'):
@@ -117,28 +117,28 @@ for inFile in inFiles:
 
                 if offs != 0xff:
                     # Parse NE3 program file
-                    nepgParms = nepgParser.parse(data, offs)
+                    nepg_parms = nepgParser.parse(data, offs)
     
-                    if outFile == '':
+                    if out_file == '':
                         # Print results to screen 
-                        nepgOut.printScreen(inFile, nepgParms)
+                        nepgOut.print_screen(in_file, nepg_parms)
                     else:
                         # Write results to .csv file
-                        print("Processing file '{}'".format(inPath))
-                        nepgName, ext = os.path.splitext(os.path.basename(inPath))
-                        nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
+                        print("Processing file '{}'".format(in_path))
+                        nepgName, ext = os.path.splitext(os.path.basename(in_path))
+                        nepgOut.write_csv_line(f_out, nepgName, nepg_parms)
                 else:
-                    print("Error: File '{}' comprises unsupported file format".format(inPath))
+                    print("Error: File '{}' comprises unsupported file format".format(in_path))
             else:
-                print("Error: File '{}' is not a valid NE3 program file".format(inPath))
+                print("Error: File '{}' is not a valid NE3 program file".format(in_path))
 
-            fIn.close()    
+            f_in.close()    
         else:
-          print("Error: File '{}' not found".format(inPath))
+          print("Error: File '{}' not found".format(in_path))
 
-if fileCount == 0:
+if file_count == 0:
     print("Error: No NE3 program files found")
 
-if outFile != '':
-    print("\n{} files processed and results written to '{}'".format(fileCount, outFile))
-    fOut.close()
+if out_file != '':
+    print("\n{} files processed and results written to '{}'".format(file_count, out_file))
+    f_out.close()

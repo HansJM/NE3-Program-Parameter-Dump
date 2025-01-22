@@ -13,7 +13,7 @@
 #                -d DST, --dst DST  write results to <DST>.csv / <SRC>.csv with '-d $'
 #                -f, --folder       process all .nepg files in folder <SRC>
 #
-# Version:     1.3
+# Version:     1.4
 #
 # Author:      Hans Juergen Miks
 #
@@ -22,14 +22,15 @@
 #                                       Clavinet pick-up type removed since it cannot
 #                                       be determined from .nepg file
 #              17.06.2020  Version 1.2  Evaluation of Organ effect settings corrected,
-#                                       Check for unsupported .nepg file format added,
+#                                       check for unsupported .nepg file format added,
 #                                       Note: File format changed with unknown Nord
 #                                       Sound Manager version above 7.10
 #              21.06.2020  Version 1.3  Support for new .nepg file format added
+#              22.01.2025  Version 1.4  Migrated to Python 3.11
 #
 # MIT License
 #
-# Copyright (c) 2020 HansJM
+# Copyright (c) 2025 HansJM
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,10 +53,10 @@
 import sys, os, argparse
 import nepgParser, nepgOut
 
-version = 1.3
+version = 1.4
 
-print "\nnepgDump - Nord Electro 3 Program Parameter Dump, Vs {}".format(version)
-print "========================================================\n"
+print("\nnepgDump - Nord Electro 3 Program Parameter Dump, Vs {}".format(version))
+print("========================================================\n")
 
 # Parse and evaluate command line arguments
 parser = argparse.ArgumentParser()
@@ -69,75 +70,75 @@ inFiles = ''
 outFile = ''
 
 if args.folder:
-  if os.path.isdir(args.SRC):
-    inFolder = str(args.SRC)
-    inFiles = os.listdir(str(args.SRC))
-  else:
-    print "Error: Directory '{}' not found".format(args.SRC)
-    sys.exit()    
+    if os.path.isdir(args.SRC):
+        inFolder = str(args.SRC)
+        inFiles = os.listdir(str(args.SRC))
+    else:
+        print("Error: Directory '{}' not found".format(args.SRC))
+        sys.exit()    
 else:
-  inFiles = [str(args.SRC) + '.nepg']
+    inFiles = [str(args.SRC) + '.nepg']
 
 if args.dst == '$':
-  outFile = str(args.SRC) + '.csv'
+    outFile = str(args.SRC) + '.csv'
 elif args.dst:
-  outFile = str(args.dst) + '.csv'
+    outFile = str(args.dst) + '.csv'
 
 # Prepare .csv output file, if specified
 if outFile != '':
-  fOut = open(outFile, 'wb')
-  fOut.write('sep=,\n')
-  nepgOut.writeCsvHeader(fOut)
+    fOut = open(outFile, 'w', newline='')
+    fOut.write('sep=,\n')
+    nepgOut.writeCsvHeader(fOut)
 
 # Process input file(s)
 fileCount = 0
 for inFile in inFiles:
-  if inFile.endswith('.nepg'):
-    fileCount += 1
-    if inFolder != '':
-      inPath = inFolder + '\\' + inFile
-    else:
-      inPath = inFile
-
-    if os.path.isfile(inPath):
-      fIn = open(inPath, 'rb')
-      data = fIn.read()
-
-      # Check for valid NE3 program file
-      if (data[0x00:0x04] == 'CBIN') and (data[0x08:0x0c] == 'nepg'):
-        # Check file format (data[0x04] = 0: initial file format; 1: new file format)
-        if ord(data[0x04]) == 0x00:
-          offs = 0x00
-        elif ord(data[0x04]) == 0x01:
-          offs = 0x14
+    if inFile.endswith('.nepg'):
+        fileCount += 1
+        if inFolder != '':
+          inPath = inFolder + '\\' + inFile
         else:
-          # offs = 0xff indicates unknown file format
-          offs = 0xff
+          inPath = inFile
 
-        if offs != 0xff:
-          # Parse NE3 program file
-          nepgParms = nepgParser.parse(data, offs)
+        if os.path.isfile(inPath):
+            fIn = open(inPath, 'rb')
+            data = fIn.read()
+
+            # Check for valid NE3 program file
+            if (data[0x00:0x04] == b'CBIN') and (data[0x08:0x0c] == b'nepg'):
+                # Check file format (data[0x04] = 0: initial file format; 1: new file format)
+                if data[0x04] == 0x00:
+                    offs = 0x00
+                elif data[0x04] == 0x01:
+                    offs = 0x14
+                else:
+                    # offs = 0xff indicates unknown file format
+                    offs = 0xff
+
+                if offs != 0xff:
+                    # Parse NE3 program file
+                    nepgParms = nepgParser.parse(data, offs)
     
-          if outFile == '':
-            # Print results to screen 
-            nepgOut.printScreen(inFile, nepgParms)
-          else:
-            # Write results to .csv file
-            print "Processing file '{}'".format(inPath)
-            nepgName, ext = os.path.splitext(os.path.basename(inPath))
-            nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
-        else:
-          print "Error: File '{}' comprises unsupported file format".format(inPath)
-      else:
-        print "Error: File '{}' is not a valid NE3 program file".format(inPath)
+                    if outFile == '':
+                        # Print results to screen 
+                        nepgOut.printScreen(inFile, nepgParms)
+                    else:
+                        # Write results to .csv file
+                        print("Processing file '{}'".format(inPath))
+                        nepgName, ext = os.path.splitext(os.path.basename(inPath))
+                        nepgOut.writeCsvLine(fOut, nepgName, nepgParms)
+                else:
+                    print("Error: File '{}' comprises unsupported file format".format(inPath))
+            else:
+                print("Error: File '{}' is not a valid NE3 program file".format(inPath))
 
-      fIn.close()    
-    else:
-      print "Error: File '{}' not found".format(inPath)
+            fIn.close()    
+        else:
+          print("Error: File '{}' not found".format(inPath))
 
 if fileCount == 0:
-  print "Error: No NE3 program files found"
+    print("Error: No NE3 program files found")
 
 if outFile != '':
-  print "\n{} files processed and results written to '{}'".format(fileCount, outFile)
-  fOut.close()
+    print("\n{} files processed and results written to '{}'".format(fileCount, outFile))
+    fOut.close()

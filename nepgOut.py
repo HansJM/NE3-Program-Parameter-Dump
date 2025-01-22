@@ -7,7 +7,7 @@
 #
 # Author:      Hans Juergen Miks
 #
-# Date:        17.06.2020
+# Date:        27.06.2024
 # ==============================================================================
 import csv
 
@@ -23,73 +23,73 @@ import csv
 # ------------------------------------------------------------------------------
 def printScreen(inFile, nepgParms):
 
-  # Assemble output string
-  str = '\n+++++ {} +++++'.format(inFile)
-  str += '\n\nProgram location: {}'.format(nepgParms['progLoc'])
+    # Assemble output string
+    str = '\n+++++ {} +++++'.format(inFile)
+    str += '\n\nProgram location: {}'.format(nepgParms['progLoc'])
 
-  str += '\n\nInstrument:       {}'.format(nepgParms['instr'])
-  if nepgParms['instr'] == 'Piano':
-    str += '\n  Category:       {}'.format(nepgParms['pianoCategory'])
-    str += '\n  Model:          {}'.format(nepgParms['pianoModel'])
-    if nepgParms['pianoCategory'] == 'Clav/Hps':
-      str += '\n  Clav EQ:        {}'.format(nepgParms['clavEq'])
-  elif nepgParms['instr'] == 'Organ':
-    str += ', {}'.format(nepgParms['organModel'])
-    str += '\n1/Lo:'
-    str += '\n  Drawbars:       {}'.format(nepgParms['organDrawbars#1'])
-    str += '\n  Vibrato/Chorus: {}'.format(nepgParms['organVib#1'])
-    if nepgParms['organModel'] == 'B3':
-      str += '\n  Percussion:     {}'.format(nepgParms['organPerc#1'])
-    str += '\n2/Up:'
-    str += '\n  Drawbars:       {}'.format(nepgParms['organDrawbars#2'])
-    str += '\n  Vibrato/Chorus: {}'.format(nepgParms['organVib#2'])
-    if nepgParms['organModel'] == 'B3':
-      str += '\n  Percussion:     {}'.format(nepgParms['organPerc#2'])
-    str += '\nRotary Speed:     {}'.format(nepgParms['organRotarySpeed'])
-    str += '\nPreset/Split:     {}'.format(nepgParms['organPresetSplit'])
-  elif nepgParms['instr'] == 'Sample Lib':
-    str += '\n  Sample No:      {}'.format(nepgParms['sampleNo'])
-    str += '\n  Sample Env:     {}'.format(nepgParms['sampleEnv'])
+    str += '\n\nInstrument:       {}'.format(nepgParms['instr'])
+    if nepgParms['instr'] == 'Piano':
+        str += '\n  Category:       {}'.format(nepgParms['pianoCategory'])
+        str += '\n  Model:          {}'.format(nepgParms['pianoModel'])
+        if nepgParms['pianoCategory'] == 'Clav/Hps':
+            str += '\n  Clav EQ:        {}'.format(nepgParms['clavEq'])
+    elif nepgParms['instr'] == 'Organ':
+        str += ', {}'.format(nepgParms['organModel'])
+        str += '\n1/Lo:'
+        str += '\n  Drawbars:       {}'.format(nepgParms['organDrawbars#1'])
+        str += '\n  Vibrato/Chorus: {}'.format(nepgParms['organVib#1'])
+        if nepgParms['organModel'] == 'B3':
+            str += '\n  Percussion:     {}'.format(nepgParms['organPerc#1'])
+        str += '\n2/Up:'
+        str += '\n  Drawbars:       {}'.format(nepgParms['organDrawbars#2'])
+        str += '\n  Vibrato/Chorus: {}'.format(nepgParms['organVib#2'])
+        if nepgParms['organModel'] == 'B3':
+            str += '\n  Percussion:     {}'.format(nepgParms['organPerc#2'])
+        str += '\nRotary Speed:     {}'.format(nepgParms['organRotarySpeed'])
+        str += '\nPreset/Split:     {}'.format(nepgParms['organPresetSplit'])
+    elif nepgParms['instr'] == 'Sample Lib':
+        str += '\n  Sample No:      {}'.format(nepgParms['sampleNo'])
+        str += '\n  Sample Env:     {}'.format(nepgParms['sampleEnv'])
   
-  str += '\n'
-  if nepgParms['eff1Type'] != 'Off':
-    str += '\nEffect 1:         {}'.format(nepgParms['eff1Type'])
-    str += '\n  Rate:           {}'.format(nepgParms['eff1Rate'])
-  else:
-    str += '\nEffect 1:         Off'
+    str += '\n'
+    if nepgParms['eff1Type'] != 'Off':
+        str += '\nEffect 1:         {}'.format(nepgParms['eff1Type'])
+        str += '\n  Rate:           {}'.format(nepgParms['eff1Rate'])
+    else:
+        str += '\nEffect 1:         Off'
       
-  if nepgParms['eff2Type'] != 'Off':
-    str += '\nEffect 2:         {}'.format(nepgParms['eff2Type'])
-    str += '\n  Rate:           {}'.format(nepgParms['eff2Rate'])
-  else:
-    str += '\nEffect 2:         Off'
+    if nepgParms['eff2Type'] != 'Off':
+        str += '\nEffect 2:         {}'.format(nepgParms['eff2Type'])
+        str += '\n  Rate:           {}'.format(nepgParms['eff2Rate'])
+    else:
+        str += '\nEffect 2:         Off'
       
-  if nepgParms['spkCompType'] != 'Off':
-    str += '\nSpeaker/Comp:     {}'.format(nepgParms['spkCompType'])
-    str += '\n  Rate:           {}'.format(nepgParms['spkCompRate'])
-  else:
-    str += '\nSpeaker/Comp:     Off'
+    if nepgParms['spkCompType'] != 'Off':
+        str += '\nSpeaker/Comp:     {}'.format(nepgParms['spkCompType'])
+        str += '\n  Rate:           {}'.format(nepgParms['spkCompRate'])
+    else:
+        str += '\nSpeaker/Comp:     Off'
       
-  if nepgParms['revType'] != 'Off':
-    str += '\nReverb:           {}'.format(nepgParms['revType'])
-    str += '\n  Mix:            {}'.format(nepgParms['revMix'])
-  else:
-    str += '\nReverb:           Off'
+    if nepgParms['revType'] != 'Off':
+        str += '\nReverb:           {}'.format(nepgParms['revType'])
+        str += '\n  Mix:            {}'.format(nepgParms['revMix'])
+    else:
+        str += '\nReverb:           Off'
       
-  if nepgParms['eqState'] == 'On':
-    str += '\nEqualizer:'
-    str += '\n  Bass Gain:      {} dB'.format(nepgParms['eqBassGain'])
-    str += '\n  Mid Freq:       {} Hz'.format(nepgParms['eqMidFreq'])
-    str += '\n  Mid Gain:       {} dB'.format(nepgParms['eqMidGain'])
-    str += '\n  Treble Gain:    {} dB'.format(nepgParms['eqTrebleGain'])
-  else:
-    str += '\nEqualizer:        Off'
+    if nepgParms['eqState'] == 'On':
+        str += '\nEqualizer:'
+        str += '\n  Bass Gain:      {} dB'.format(nepgParms['eqBassGain'])
+        str += '\n  Mid Freq:       {} Hz'.format(nepgParms['eqMidFreq'])
+        str += '\n  Mid Gain:       {} dB'.format(nepgParms['eqMidGain'])
+        str += '\n  Treble Gain:    {} dB'.format(nepgParms['eqTrebleGain'])
+    else:
+        str += '\nEqualizer:        Off'
 
-  str += '\n\nProgram Gain:     {}\n'.format(nepgParms['progGain'])
+    str += '\n\nProgram Gain:     {}\n'.format(nepgParms['progGain'])
   
-  print str
+    print(str)
   
-  return
+    return
 
 
 # ------------------------------------------------------------------------------
@@ -102,15 +102,16 @@ def printScreen(inFile, nepgParms):
 # ------------------------------------------------------------------------------
 def writeCsvHeader(fOut):
 
-  csvHeader = ['Location', 'Program Name', 'Instrument', 'Piano Category', 'Piano Model', 'Clav EQ',\
-    'Organ Model', 'Organ Drawbars (1/Lo)', 'Vibrato/Chorus (1/Lo)', 'Percussion (1/Lo)', 'Organ Drawbars (2/Up)',\
-    'Vibrato/Chorus (2/Up)', 'Percussion (2/Up)', 'Rotary Speed', 'Preset/Split', 'Sample No', 'Sample Env',\
-    'Effect1', 'Rate', 'Effect2', 'Rate', 'Speaker/Comp', 'Rate', 'Reverb', 'Mix',\
-    'Equalizer', 'Bass [dB]', 'Mid Freq [Hz]', 'Mid Gain [dB]', 'Treble [dB]', 'Program Gain']
-  writer = csv.writer(fOut)
-  writer.writerow(csvHeader)
+    csvHeader = ['Location', 'Program Name', 'Instrument', 'Piano Category', 'Piano Model', 'Clav EQ',\
+        'Organ Model', 'Organ Drawbars (1/Lo)', 'Vibrato/Chorus (1/Lo)', 'Percussion (1/Lo)', 'Organ Drawbars (2/Up)',\
+        'Vibrato/Chorus (2/Up)', 'Percussion (2/Up)', 'Rotary Speed', 'Preset/Split', 'Sample No', 'Sample Env',\
+        'Effect1', 'Rate', 'Effect2', 'Rate', 'Speaker/Comp', 'Rate', 'Reverb', 'Mix',\
+        'Equalizer', 'Bass [dB]', 'Mid Freq [Hz]', 'Mid Gain [dB]', 'Treble [dB]', 'Program Gain']
 
-  return
+    writer = csv.writer(fOut, delimiter=',')
+    writer.writerow(csvHeader)
+
+    return
 
 
 # ------------------------------------------------------------------------------
@@ -126,15 +127,15 @@ def writeCsvHeader(fOut):
 # ------------------------------------------------------------------------------
 def writeCsvLine(fOut, nepgName, nepgParms):
 
-  # Add a leading whitespace character to float numbers to force formatting as text in Excel
-  for key, value in nepgParms.items():
-    if isinstance(value, float):
-      nepgParms[key] = ' ' + str(value)
+    # Add a leading whitespace character to float numbers to force formatting as text in Excel
+    for key, value in nepgParms.items():
+        if isinstance(value, float):
+            nepgParms[key] = ' ' + str(value)
 
-  # Add program name to parameter list
-  nepgParms['progName'] = nepgName
+    # Add program name to parameter list
+    nepgParms['progName'] = nepgName
 
-  writer = csv.writer(fOut)
-  writer.writerow(nepgParms.values())
+    writer = csv.writer(fOut, delimiter=',')
+    writer.writerow(nepgParms.values())
 
-  return
+    return

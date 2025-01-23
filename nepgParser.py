@@ -7,7 +7,7 @@
 #
 # Author:      Hans Juergen Miks
 #
-# Date:        26.06.2024
+# Date:        23.01.2025
 # ==============================================================================
 import collections
 
@@ -17,15 +17,13 @@ import collections
 # Parameters:  msb   high byte
 #              lsb   low byte
 #              offs  number of lowest relevant bit
-# Returns:     i     resulting 7 bit as integer value
+# Returns:           resulting 7 bit as integer value
 #
 # Description: Get integer value from 7 out of 16 bit with offset
 # ------------------------------------------------------------------------------
 def get_int(msb, lsb, offs):
 
-    i = ((msb << (8-offs)) | (lsb >> offs)) & 0x7f
-
-    return i
+    return ((msb << (8-offs)) | (lsb >> offs)) & 0x7f
 
   
 # ------------------------------------------------------------------------------

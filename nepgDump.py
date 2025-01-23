@@ -26,7 +26,7 @@
 #                                       Note: File format changed with unknown Nord
 #                                       Sound Manager version above 7.10
 #              21.06.2020  Version 1.3  Support for new .nepg file format added
-#              22.01.2025  Version 1.4  Migrated to Python 3.x, some cosmetic changes
+#              23.01.2025  Version 1.4  Migrated to Python 3.x, cosmetic changes
 #
 # MIT License
 #
@@ -125,8 +125,8 @@ for in_file in in_files:
                     else:
                         # Write results to .csv file
                         print("Processing file '{}'".format(in_path))
-                        nepgName, ext = os.path.splitext(os.path.basename(in_path))
-                        nepgOut.write_csv_line(f_out, nepgName, nepg_parms)
+                        nepg_name, ext = os.path.splitext(os.path.basename(in_path))
+                        nepgOut.write_csv_line(f_out, nepg_name, nepg_parms)
                 else:
                     print("Error: File '{}' comprises unsupported file format".format(in_path))
             else:

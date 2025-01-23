@@ -46,7 +46,7 @@ Date | Version | Release Notes
 25.10.2017 | 1.1 | Detection of Piano models corrected, Clavinet pick-up type removed since it cannot be determined from program file
 17.06.2020 | 1.2 | Evaluation of Organ effect settings corrected
 21.06.2020 | 1.3 | Support for new .nepg file format added
-22.01.2025 | 1.4 | Migrated to Python 3.x, some cosmetic changes
+23.01.2025 | 1.4 | Migrated to Python 3.x, cosmetic changes
 
 ## Acknowledgement
 Some basic ideas have been taken from a similar dump script for Nord Electro 4 program files. It has been written by Christian E. and can be found on GitHub here: https://github.com/10x10sw/NordUser/tree/master/DumpNE4P
